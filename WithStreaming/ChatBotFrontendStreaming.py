@@ -1,6 +1,6 @@
 import streamlit as st 
 from langchain_core.messages import HumanMessage
-from WithStreaming.ChatBotBackendStreaming import ChatBotWithStreaming
+from ChatBotBackendStreaming import ChatBotWithStreaming
 
 backend_object = ChatBotWithStreaming('deepseek-ai/DeepSeek-R1','text-generation')
 workflow = backend_object.WorkflowFunction()
