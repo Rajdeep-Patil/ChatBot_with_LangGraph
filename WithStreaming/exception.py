@@ -1,5 +1,5 @@
 import sys 
-from WithStreaming.logger import logging
+from logger import logging
 
 class ChatBotWithLangGraphException(Exception):
     def __init__(self,exception_error,error_detail:sys):
