@@ -3,7 +3,7 @@ from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import InMemorySaver
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 from typing import TypedDict, Annotated
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 from exception import ChatBotWithLangGraphException
 import sys
 from logger import logging
@@ -19,17 +19,13 @@ class ChatBotWithStreaming:
     def WorkflowFunction(self):
         logging.info("Workflow Function Started")
         logging.info("Taking DeepSeek LLM Model")
-        try:
-            llm = HuggingFaceEndpoint(
-            repo_id= self.repo_id,
-            task = self.task
-            )
-            model = ChatHuggingFace(llm=llm)
-            logging.info("Taking DeepSeek LLM Model Done")
-        except Exception as e:
-            logging.error("Error inside loading LLM model",exc_info=True)
-            raise ChatBotWithLangGraphException(e,sys)
-        
+        llm = HuggingFaceEndpoint(
+        repo_id= self.repo_id,
+        task = self.task
+        )
+        model = ChatHuggingFace(llm=llm)
+        logging.info("Taking DeepSeek LLM Model Done")
+    
         logging.info("Making ChatBot State")
 
         class ChatBotState(TypedDict):
@@ -70,3 +66,17 @@ class ChatBotWithStreaming:
         except Exception as e:
             logging.error("Error inside Workflow for ChatBot",exc_info=True)
             raise ChatBotWithLangGraphException(e,sys)
+        
+# backend_object = ChatBotWithStreaming('deepseek-ai/DeepSeek-R1','text-generation')
+# workflow = backend_object.WorkflowFunction()
+
+# config2 = {'configurable':{'thread_id':'thread_2'}}
+# while True:
+#     input_ = input('you : ')
+#     user_input = {'messages':[HumanMessage(content=input_)]}
+#     if input_.strip().lower() in ['exit','bye']:
+#         break
+#     for messages_chunk, metadata in  workflow.stream(user_input,config=config2,stream_mode='messages'):
+#         if messages_chunk.content is not None:
+#             print(messages_chunk.content, end="", flush=True)
+#     print('\n')
