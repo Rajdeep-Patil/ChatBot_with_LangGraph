@@ -21,7 +21,7 @@ if user_input:
         st.text(user_input)
     
     config2 = {'configurable':{'thread_id':'thread-2'}}
-    input_dict = {'messages':[HumanMessage(content=user_input)]}
+    input_dict = {'messages':[HumanMessage(content=f"do not show the reasoning {user_input}")]}
     
     with st.chat_message('assistant'):
         ai_message = st.write_stream(message_chunk.content for message_chunk, metadata in workflow.stream(input_dict,config=config2,stream_mode='messages')
