@@ -24,5 +24,6 @@ if user_input:
     input_dict = {'messages':[HumanMessage(content=user_input)]}
     
     with st.chat_message('assistant'):
-        ai_message = st.write_stream(message_chunk.content for message_chunk, metadata in workflow.stream(input_dict,config=config2,stream_mode='messages'))
+        ai_message = st.write_stream(message_chunk.content for message_chunk, metadata in workflow.stream(input_dict,config=config2,stream_mode='messages')
+                                    if message_chunk is not None)
     st.session_state['messages_history'].append({'role':'assistant','content':ai_message})
