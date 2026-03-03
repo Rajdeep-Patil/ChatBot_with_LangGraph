@@ -3,7 +3,7 @@ from langchain_core.messages import HumanMessage
 from ChatBotBackendStreaming import ChatBotWithStreaming
 
 if 'workflow' not in st.session_state:
-    backend_object = ChatBotWithStreaming('deepseek-ai/DeepSeek-V2','text-generation')
+    backend_object = ChatBotWithStreaming('deepseek-ai/DeepSeek-V3.2','text-generation')
     st.session_state.workflow = backend_object.WorkflowFunction()
 workflow = st.session_state.workflow
 
