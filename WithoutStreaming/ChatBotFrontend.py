@@ -1,5 +1,12 @@
 import streamlit as st
 from WithoutStreaming.ChatBotBackend import workflow
+from ChatBotBackend import ChatBotWithoutStreaming
+
+
+if 'workflow' not in st.session_state:
+    backend_object = ChatBotWithoutStreaming('deepseek-ai/DeepSeek-R1','text-generation')
+    st.session_state.workflow = backend_object.WorkflowFunction()
+workflow = st.session_state.workflow
 
 if 'messages' not in st.session_state:
     st.session_state['messages'] = []
