@@ -1,5 +1,4 @@
 import streamlit as st
-from WithoutStreaming.ChatBotBackend import workflow
 from ChatBotBackend import ChatBotWithoutStreaming
 
 

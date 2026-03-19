@@ -4,9 +4,9 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
 from typing import TypedDict, Annotated
 from langchain_core.messages import BaseMessage
-from WithStreaming.exception import ChatBotWithLangGraphException
+from exception_ import ChatBotWithOutLangGraphException
 import sys
-from WithStreaming.logger import logging
+from logger_ import logging
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -28,7 +28,7 @@ class ChatBotWithoutStreaming:
             logging.info("Taking DeepSeek LLM Model Done")
         except Exception as e:
             logging.error("Error inside loading LLM model",exc_info=True)
-            raise ChatBotWithLangGraphException(e,sys)
+            raise ChatBotWithOutLangGraphException(e,sys)
         
         logging.info("Making ChatBot State")
 
@@ -48,7 +48,7 @@ class ChatBotWithoutStreaming:
                 return {'messages':[answer]}
             except Exception as e:
                 logging.error("Error inside Chat Function",exc_info=True)
-                raise ChatBotWithLangGraphException(e,sys)
+                raise ChatBotWithOutLangGraphException(e,sys)
         
         logging.info("Making Workflow for ChatBot")            
         try:
@@ -69,4 +69,4 @@ class ChatBotWithoutStreaming:
             return workflow
         except Exception as e:
             logging.error("Error inside Workflow for ChatBot",exc_info=True)
-            raise ChatBotWithLangGraphException(e,sys)
+            raise ChatBotWithOutLangGraphException(e,sys)
