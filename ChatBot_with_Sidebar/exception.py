@@ -1,7 +1,7 @@
 import sys 
-from logger_ import logging
+from logger import logging
 
-class ChatBotWithOutLangGraphException(Exception):
+class ChatBotWithSidebarBackend(Exception):
     def __init__(self,exception_error,error_detail:sys):
         self.exception_error = exception_error
         _,_,exc_info = error_detail.exc_info()

@@ -4,3 +4,5 @@ langchain-huggingface
 langgraph
 streamlit   
 python-dotenv
+langchain-groq
+langgraph-checkpoint-sqlite
