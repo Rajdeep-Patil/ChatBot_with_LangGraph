@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template, Response, stream_wit
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'ChatBot_with_Sidebar'))
-from ChatBot_with_Sidebar.ChatBotWithSidebarBackend import ChatBot
+from ChatBotWithSidebarBackend import ChatBot
 from langchain_core.messages import HumanMessage
 import uuid
 import json
@@ -27,7 +27,7 @@ def index():
 @app.route('/api/threads', methods=['GET'])
 def get_threads():
     wf, retrieve = get_workflow()
-    thread_ids = retrieve()  # already newest first (reversed in backend)
+    thread_ids = retrieve()  # backend gives newest first
     thread_list = []
     for tid in thread_ids:
         state = wf.get_state(config={'configurable': {'thread_id': tid}})
