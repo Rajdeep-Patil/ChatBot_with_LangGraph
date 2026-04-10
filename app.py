@@ -9,7 +9,6 @@ import json
 
 app = Flask(__name__)
 
-# ----------- Initialize ChatBot (singleton) -----------
 _chatbot_instance = None
 workflow = None
 retrieve_all_threads = None
@@ -21,16 +20,12 @@ def get_workflow():
         workflow, retrieve_all_threads = _chatbot_instance.WorkflowFunction()
     return workflow, retrieve_all_threads
 
-# ----------- Routes -----------
-
 @app.route('/')
 def index():
     return render_template('index.html')
 
-
 @app.route('/api/threads', methods=['GET'])
 def get_threads():
-    """Get all existing conversation threads"""
     wf, retrieve = get_workflow()
     thread_ids = retrieve()
     thread_dict = {}
@@ -42,10 +37,8 @@ def get_threads():
             thread_dict[tid] = name
     return jsonify({'threads': thread_dict})
 
-
 @app.route('/api/thread/<thread_id>', methods=['GET'])
 def get_thread_messages(thread_id):
-    """Load messages for a specific thread"""
     wf, _ = get_workflow()
     state = wf.get_state(config={'configurable': {'thread_id': thread_id}})
     messages = state.values.get('messages', [])
@@ -55,10 +48,8 @@ def get_thread_messages(thread_id):
         result.append({'role': role, 'content': msg.content})
     return jsonify({'messages': result})
 
-
 @app.route('/api/chat', methods=['POST'])
 def chat():
-    """Send a message and get streaming response"""
     data = request.json
     user_input = data.get('message', '')
     thread_id = data.get('thread_id', str(uuid.uuid4()))
@@ -82,15 +73,16 @@ def chat():
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
-    return Response(stream_with_context(generate()), mimetype='text/event-stream')
-
+    response = Response(stream_with_context(generate()), mimetype='text/event-stream')
+    response.headers['X-Accel-Buffering'] = 'no'
+    response.headers['Cache-Control'] = 'no-cache'
+    response.headers['Connection'] = 'keep-alive'
+    return response
 
 @app.route('/api/new_thread', methods=['POST'])
 def new_thread():
-    """Generate a new thread ID"""
     thread_id = str(uuid.uuid4())
     return jsonify({'thread_id': thread_id})
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=10000, threaded=True)
