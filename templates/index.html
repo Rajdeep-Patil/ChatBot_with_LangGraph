@@ -423,15 +423,16 @@ if (!text || isStreaming) return;
 textarea.value = '';
 autoResize(textarea);
 
-// First message → name the thread
-if (!threadDict[threadId]) {
-    threadDict[threadId] = text.slice(0, 30);
-    renderThreadList();
-}
-
 appendMessage('user', text);
 isStreaming = true;
 document.getElementById('send-btn').disabled = true;
+
+// Add current thread to top of local list immediately
+if (!threadDict[threadId]) {
+    threadDict[threadId] = text.slice(0, 30);
+    threadList.unshift({id: threadId, name: text.slice(0, 30)});
+    renderThreadList();
+}
 
 const { bub, cur, box } = createStreamBubble();
 let full = '';
@@ -474,6 +475,13 @@ try {
 
 isStreaming = false;
 document.getElementById('send-btn').disabled = false;
+
+// Refresh thread list from server to get correct order
+const res = await fetch('/api/threads');
+const data = await res.json();
+threadList = data.threads;
+data.threads.forEach(t => threadDict[t.id] = t.name);
+renderThreadList();
 }
 
 // ── Textarea auto-resize ───────────────────────────────────────
