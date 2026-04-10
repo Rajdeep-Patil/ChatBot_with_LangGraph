@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template, Response, stream_wit
 import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'ChatBot_with_Sidebar'))
-from ChatBotWithSidebarBackend import ChatBot
+from ChatBot_with_Sidebar.ChatBotWithSidebarBackend import ChatBot
 from langchain_core.messages import HumanMessage
 import uuid
 import json
@@ -85,4 +85,6 @@ def new_thread():
     return jsonify({'thread_id': thread_id})
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=10000, threaded=True)
+    port = int(os.environ.get('PORT', 5000))
+
+    app.run(host='0.0.0.0', port=port, threaded=True)
