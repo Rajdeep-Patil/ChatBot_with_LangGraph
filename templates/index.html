@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chat With Rajdeep</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --bg:        #0d0d0f;
+    --surface:   #13131a;
+    --sidebar:   #0f0f16;
+    --border:    #1f1f2e;
+    --accent:    #7c6af7;
+    --accent2:   #e05aff;
+    --text:      #e8e6f0;
+    --muted:     #6b6880;
+    --user-bg:   #1a1830;
+    --ai-bg:     #111119;
+    --glow:      rgba(124,106,247,0.18);
+    --radius:    14px;
+}
+
+html, body { height: 100%; font-family: 'DM Mono', monospace; background: var(--bg); color: var(--text); overflow: hidden; }
+
+/* ─── LAYOUT ──────────────────────────────────────────────── */
+.shell { display: flex; height: 100vh; }
+
+/* ─── SIDEBAR ─────────────────────────────────────────────── */
+.sidebar {
+    width: 270px; min-width: 270px;
+    background: var(--sidebar);
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    padding: 24px 14px 20px;
+    position: relative; overflow: hidden;
+}
+.sidebar::before {
+    content: '';
+    position: absolute; top: -60px; left: -60px;
+    width: 200px; height: 200px;
+    background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+    opacity: .06; pointer-events: none;
+}
+
+.brand {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.25rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    margin-bottom: 20px; padding: 0 6px;
+    letter-spacing: -.3px;
+}
+
+.btn-new {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; border-radius: var(--radius);
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; font-family: 'Syne', sans-serif;
+    font-weight: 600; font-size: .82rem;
+    border: none; cursor: pointer; width: 100%;
+    letter-spacing: .3px;
+    box-shadow: 0 0 20px var(--glow);
+    transition: opacity .2s, transform .15s;
+}
+.btn-new:hover { opacity: .88; transform: translateY(-1px); }
+.btn-new:active { transform: translateY(0); }
+.btn-new svg { width: 15px; height: 15px; }
+
+.sidebar-label {
+    font-size: .68rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1.5px;
+    padding: 18px 6px 8px; font-weight: 500;
+}
+
+.thread-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; }
+.thread-list::-webkit-scrollbar { width: 4px; }
+.thread-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.thread-item {
+    padding: 9px 12px; border-radius: 10px;
+    font-size: .78rem; color: var(--muted);
+    cursor: pointer; border: 1px solid transparent;
+    transition: background .18s, color .18s, border-color .18s;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    display: flex; align-items: center; gap: 8px;
+}
+.thread-item::before {
+    content: '›';
+    font-size: 1rem; color: var(--accent); opacity: 0;
+    transition: opacity .18s;
+}
+.thread-item:hover { background: var(--border); color: var(--text); }
+.thread-item:hover::before { opacity: 1; }
+.thread-item.active {
+    background: rgba(124,106,247,.12);
+    border-color: rgba(124,106,247,.25);
+    color: var(--text);
+}
+.thread-item.active::before { opacity: 1; }
+
+/* ─── MAIN CHAT ───────────────────────────────────────────── */
+.main {
+    flex: 1; display: flex; flex-direction: column;
+    background: var(--bg); min-width: 0;
+}
+
+.topbar {
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(13,13,15,.85);
+    backdrop-filter: blur(8px);
+}
+.topbar-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: linear-gradient(var(--accent), var(--accent2));
+    box-shadow: 0 0 8px var(--accent);
+    animation: pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.topbar-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: .95rem; color: var(--text);
+}
+.topbar-model {
+    margin-left: auto; font-size: .7rem; color: var(--muted);
+    background: var(--surface); border: 1px solid var(--border);
+    padding: 3px 10px; border-radius: 20px;
+}
+
+/* messages */
+.messages {
+    flex: 1; overflow-y: auto;
+    padding: 28px 5vw; display: flex; flex-direction: column; gap: 20px;
+}
+.messages::-webkit-scrollbar { width: 5px; }
+.messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+.empty-state {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px;
+    color: var(--muted);
+}
+.empty-icon {
+    width: 64px; height: 64px; border-radius: 20px;
+    background: linear-gradient(135deg, rgba(124,106,247,.15), rgba(224,90,255,.1));
+    border: 1px solid rgba(124,106,247,.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem;
+}
+.empty-state p { font-size: .85rem; text-align: center; max-width: 260px; line-height: 1.7; }
+
+.msg { display: flex; gap: 12px; animation: fadeUp .3s ease both; }
+@keyframes fadeUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:none} }
+
+.msg.user { flex-direction: row-reverse; }
+
+.avatar {
+    width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: .85rem; font-weight: 700; font-family: 'Syne', sans-serif;
+}
+.avatar.ai {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #fff; box-shadow: 0 0 14px var(--glow);
+}
+.avatar.user {
+    background: var(--user-bg); border: 1px solid var(--border); color: var(--accent);
+}
+
+.bubble {
+    max-width: 70%; padding: 12px 16px; border-radius: var(--radius);
+    font-size: .85rem; line-height: 1.75; white-space: pre-wrap;
+    word-break: break-word;
+}
+.msg.user .bubble {
+    background: var(--user-bg);
+    border: 1px solid rgba(124,106,247,.2);
+    border-bottom-right-radius: 4px;
+    color: var(--text);
+}
+.msg.ai .bubble {
+    background: var(--ai-bg);
+    border: 1px solid var(--border);
+    border-bottom-left-radius: 4px;
+    color: var(--text);
+}
+
+/* streaming cursor */
+.cursor {
+    display: inline-block; width: 2px; height: 1em;
+    background: var(--accent); vertical-align: text-bottom;
+    animation: blink .7s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ─── INPUT BAR ───────────────────────────────────────────── */
+.input-area {
+    padding: 16px 5vw 20px;
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+}
+.input-wrap {
+    display: flex; gap: 10px; align-items: flex-end;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 16px; padding: 8px 8px 8px 16px;
+    transition: border-color .2s, box-shadow .2s;
+}
+.input-wrap:focus-within {
+    border-color: rgba(124,106,247,.45);
+    box-shadow: 0 0 0 3px rgba(124,106,247,.08);
+}
+#user-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    color: var(--text); font-family: 'DM Mono', monospace;
+    font-size: .85rem; resize: none; max-height: 120px;
+    line-height: 1.6; padding: 6px 0;
+}
+#user-input::placeholder { color: var(--muted); }
+
+.send-btn {
+    width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: none; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; transition: opacity .2s, transform .15s;
+    box-shadow: 0 0 14px var(--glow);
+}
+.send-btn:hover { opacity: .85; transform: scale(1.05); }
+.send-btn:disabled { opacity: .35; cursor: not-allowed; transform: none; }
+.send-btn svg { width: 16px; height: 16px; color: #fff; }
+
+.hint { font-size: .68rem; color: var(--muted); text-align: center; margin-top: 8px; }
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ── SIDEBAR ── -->
+<aside class="sidebar">
+<div class="brand">✦ Chat With Rajdeep</div>
+
+<button class="btn-new" onclick="newChat()">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    New Chat
+</button>
+
+<div class="sidebar-label">My Conversations</div>
+<div class="thread-list" id="thread-list">
+    <!-- injected by JS -->
+</div>
+</aside>
+
+<!-- ── MAIN ── -->
+<main class="main">
+<div class="topbar">
+    <div class="topbar-dot"></div>
+    <span class="topbar-title">AI Assistant</span>
+    <span class="topbar-model">llama-3.3-70b-versatile</span>
+</div>
+
+<div class="messages" id="messages">
+    <div class="empty-state" id="empty-state">
+    <div class="empty-icon">✦</div>
+    <p>Start a new conversation.<br/>Ask me anything!</p>
+    </div>
+</div>
+
+<div class="input-area">
+    <div class="input-wrap">
+    <textarea id="user-input" rows="1" placeholder="Ask here …"></textarea>
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+    </button>
+    </div>
+    <p class="hint">Press Enter to send · Shift+Enter for new line</p>
+</div>
+</main>
+
+</div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────
+let threadId    = generateUUID();
+let threadDict  = {};       // { id: name }
+let isStreaming = false;
+
+// ── Init ───────────────────────────────────────────────────────
+async function init() {
+const res  = await fetch('/api/threads');
+const data = await res.json();
+threadDict = data.threads;
+renderThreadList();
+}
+init();
+
+// ── UUID ───────────────────────────────────────────────────────
+function generateUUID() {
+return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+});
+}
+
+// ── New Chat ───────────────────────────────────────────────────
+function newChat() {
+threadId = generateUUID();
+clearMessages();
+renderThreadList();
+}
+
+// ── Load Thread ────────────────────────────────────────────────
+async function loadThread(tid) {
+threadId = tid;
+const res  = await fetch(`/api/thread/${tid}`);
+const data = await res.json();
+clearMessages();
+data.messages.forEach(m => appendMessage(m.role, m.content));
+renderThreadList();
+}
+
+// ── Render Sidebar ─────────────────────────────────────────────
+function renderThreadList() {
+const list = document.getElementById('thread-list');
+list.innerHTML = '';
+const entries = Object.entries(threadDict).reverse();
+entries.forEach(([tid, name]) => {
+    if (!name) return;
+    const el = document.createElement('div');
+    el.className = 'thread-item' + (tid === threadId ? ' active' : '');
+    el.textContent = name;
+    el.title       = name;
+    el.onclick = () => loadThread(tid);
+    list.appendChild(el);
+});
+}
+
+// ── Messages ───────────────────────────────────────────────────
+function clearMessages() {
+const box = document.getElementById('messages');
+box.innerHTML = `
+    <div class="empty-state" id="empty-state">
+    <div class="empty-icon">✦</div>
+    <p>Start a new conversation.<br/>Ask me anything!</p>
+    </div>`;
+}
+
+function hideEmpty() {
+const e = document.getElementById('empty-state');
+if (e) e.remove();
+}
+
+function appendMessage(role, content) {
+hideEmpty();
+const box    = document.getElementById('messages');
+const isUser = role === 'user';
+
+const msg    = document.createElement('div');
+msg.className = `msg ${isUser ? 'user' : 'ai'}`;
+
+const av     = document.createElement('div');
+av.className = `avatar ${isUser ? 'user' : 'ai'}`;
+av.textContent = isUser ? 'U' : 'R';
+
+const bub    = document.createElement('div');
+bub.className = 'bubble';
+bub.textContent = content;
+
+msg.appendChild(av);
+msg.appendChild(bub);
+box.appendChild(msg);
+box.scrollTop = box.scrollHeight;
+return bub;
+}
+
+function createStreamBubble() {
+hideEmpty();
+const box = document.getElementById('messages');
+
+const msg = document.createElement('div');
+msg.className = 'msg ai';
+
+const av  = document.createElement('div');
+av.className = 'avatar ai';
+av.textContent = 'R';
+
+const bub = document.createElement('div');
+bub.className = 'bubble';
+
+const cur = document.createElement('span');
+cur.className = 'cursor';
+bub.appendChild(cur);
+
+msg.appendChild(av);
+msg.appendChild(bub);
+box.appendChild(msg);
+box.scrollTop = box.scrollHeight;
+
+return { bub, cur, box };
+}
+
+// ── Send ───────────────────────────────────────────────────────
+async function sendMessage() {
+const textarea = document.getElementById('user-input');
+const text     = textarea.value.trim();
+if (!text || isStreaming) return;
+
+textarea.value = '';
+autoResize(textarea);
+
+// First message → name the thread
+if (!threadDict[threadId]) {
+    threadDict[threadId] = text.slice(0, 30);
+    renderThreadList();
+}
+
+appendMessage('user', text);
+isStreaming = true;
+document.getElementById('send-btn').disabled = true;
+
+const { bub, cur, box } = createStreamBubble();
+let full = '';
+
+try {
+    const resp = await fetch('/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: text, thread_id: threadId })
+    });
+
+    const reader  = resp.body.getReader();
+    const decoder = new TextDecoder();
+
+    while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const raw = decoder.decode(value);
+    const lines = raw.split('\n');
+    for (const line of lines) {
+        if (!line.startsWith('data:')) continue;
+        try {
+        const payload = JSON.parse(line.slice(5).trim());
+        if (payload.chunk) {
+            full += payload.chunk;
+            bub.textContent = full;
+            bub.appendChild(cur);
+            box.scrollTop = box.scrollHeight;
+        }
+        if (payload.done) {
+            cur.remove();
+        }
+        } catch (_) {}
+    }
+    }
+} catch (err) {
+    bub.textContent = '⚠ Error: ' + err.message;
+    cur.remove();
+}
+
+isStreaming = false;
+document.getElementById('send-btn').disabled = false;
+}
+
+// ── Textarea auto-resize ───────────────────────────────────────
+function autoResize(el) {
+el.style.height = 'auto';
+el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+document.getElementById('user-input').addEventListener('input', function () {
+autoResize(this);
+});
+
+document.getElementById('user-input').addEventListener('keydown', function (e) {
+if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+}
+});
+</script>
+</body>
+</html>
