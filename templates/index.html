@@ -289,13 +289,16 @@ html, body { height: 100%; font-family: 'DM Mono', monospace; background: var(--
 // ── State ──────────────────────────────────────────────────────
 let threadId    = generateUUID();
 let threadDict  = {};       // { id: name }
+let threadList  = [];       // [{id, name}] ordered newest first
 let isStreaming = false;
 
 // ── Init ───────────────────────────────────────────────────────
 async function init() {
 const res  = await fetch('/api/threads');
 const data = await res.json();
-threadDict = data.threads;
+threadList = data.threads; // [{id, name}, ...] newest first
+threadDict = {};
+threadList.forEach(t => threadDict[t.id] = t.name);
 renderThreadList();
 }
 init();
@@ -329,8 +332,14 @@ renderThreadList();
 function renderThreadList() {
 const list = document.getElementById('thread-list');
 list.innerHTML = '';
-const entries = Object.entries(threadDict).reverse();
-entries.forEach(([tid, name]) => {
+// Show server-ordered list first (newest first), then any local unsaved thread
+const serverIds = new Set(threadList.map(t => t.id));
+const allThreads = [...threadList];
+// If current thread is new (not yet on server), show it at top
+if (!serverIds.has(threadId) && threadDict[threadId]) {
+    allThreads.unshift({id: threadId, name: threadDict[threadId]});
+}
+allThreads.forEach(({id: tid, name}) => {
     if (!name) return;
     const el = document.createElement('div');
     el.className = 'thread-item' + (tid === threadId ? ' active' : '');

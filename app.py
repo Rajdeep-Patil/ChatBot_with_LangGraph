@@ -27,15 +27,15 @@ def index():
 @app.route('/api/threads', methods=['GET'])
 def get_threads():
     wf, retrieve = get_workflow()
-    thread_ids = retrieve()
-    thread_dict = {}
+    thread_ids = retrieve()  # already newest first (reversed in backend)
+    thread_list = []
     for tid in thread_ids:
         state = wf.get_state(config={'configurable': {'thread_id': tid}})
         messages = state.values.get('messages', [])
         name = messages[0].content[:30] if messages else ''
         if name:
-            thread_dict[tid] = name
-    return jsonify({'threads': thread_dict})
+            thread_list.append({'id': tid, 'name': name})
+    return jsonify({'threads': thread_list})
 
 @app.route('/api/thread/<thread_id>', methods=['GET'])
 def get_thread_messages(thread_id):
