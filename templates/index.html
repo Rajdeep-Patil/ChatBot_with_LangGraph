@@ -233,9 +233,42 @@ html, body { height: 100%; font-family: 'DM Mono', monospace; background: var(--
 .send-btn svg { width: 16px; height: 16px; color: #fff; }
 
 .hint { font-size: .68rem; color: var(--muted); text-align: center; margin-top: 8px; }
+
+/* ─── MOBILE RESPONSIVE ───────────────────────────────────── */
+@media (max-width: 768px) {
+    .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    width: 260px; z-index: 100;
+    transform: translateX(-100%);
+    transition: transform .3s ease;
+    }
+    .sidebar.open { transform: translateX(0); }
+    .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,.5); z-index: 99;
+    }
+    .overlay.open { display: block; }
+    .main { width: 100%; }
+    .topbar { padding: 12px 16px; }
+    .menu-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--surface); border: 1px solid var(--border);
+    cursor: pointer; margin-right: 8px;
+    }
+    .topbar-model { display: none; }
+    .messages { padding: 16px; }
+    .bubble { max-width: 88%; }
+    .input-area { padding: 10px 12px 14px; }
+}
+@media (min-width: 769px) {
+    .menu-btn { display: none; }
+    .overlay { display: none !important; }
+}
 </style>
 </head>
 <body>
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
 <div class="shell">
 
 <!-- ── SIDEBAR ── -->
@@ -258,6 +291,11 @@ html, body { height: 100%; font-family: 'DM Mono', monospace; background: var(--
 <!-- ── MAIN ── -->
 <main class="main">
 <div class="topbar">
+    <div class="menu-btn" onclick="toggleSidebar()">
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+    </svg>
+    </div>
     <div class="topbar-dot"></div>
     <span class="topbar-title">AI Assistant</span>
     <span class="topbar-model">llama-3.3-70b-versatile</span>
@@ -286,6 +324,16 @@ html, body { height: 100%; font-family: 'DM Mono', monospace; background: var(--
 </div>
 
 <script>
+// ── Sidebar toggle (mobile) ───────────────────────────────────
+function toggleSidebar() {
+document.querySelector('.sidebar').classList.toggle('open');
+document.getElementById('overlay').classList.toggle('open');
+}
+function closeSidebar() {
+document.querySelector('.sidebar').classList.remove('open');
+document.getElementById('overlay').classList.remove('open');
+}
+
 // ── State ──────────────────────────────────────────────────────
 let threadId    = generateUUID();
 let threadDict  = {};       // { id: name }
@@ -316,6 +364,7 @@ function newChat() {
 threadId = generateUUID();
 clearMessages();
 renderThreadList();
+closeSidebar();
 }
 
 // ── Load Thread ────────────────────────────────────────────────
@@ -345,7 +394,7 @@ allThreads.forEach(({id: tid, name}) => {
     el.className = 'thread-item' + (tid === threadId ? ' active' : '');
     el.textContent = name;
     el.title       = name;
-    el.onclick = () => loadThread(tid);
+    el.onclick = () => { loadThread(tid); closeSidebar(); };
     list.appendChild(el);
 });
 }
