@@ -78,6 +78,6 @@ class ChatBot:
                 if thread_id not in all_threads:
                     all_threads.append(thread_id)
             logging.info(f"Total {len(all_threads)} threads found")
-            return all_threads[::-1]
+            return all_threads
 
         return workflow, retrieve_all_threads
